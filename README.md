@@ -17,7 +17,7 @@ O **Dlib** foi utilizado para a detecção dos *facial landmarks*.
 ### Instalação
 Basta instalar a biblioteca do OpenCV para python: 
 ```
-pip install opencv-python==4.2.0.32
+pip install opencv-python
 ```
 ### Execução
 O script para gravador da face deve ser executado utilizando os seguintes argumentos:
