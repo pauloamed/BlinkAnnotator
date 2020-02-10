@@ -25,7 +25,7 @@ pickle_in.close()
 
 ##################################### MAIN LOOP #############################################
 
-with open(args['framesDir'], "w") as f:
+with open(args['outputPath'], "w") as f:
 
     ## HEADER
     f.write("frame_start;is_blinking;")
@@ -36,7 +36,7 @@ with open(args['framesDir'], "w") as f:
     for i, record in enumerate(records):
 
         ## RETRIEVING FACE FRAME AND LANDMARKS
-        faceFrame = cv2.imread(os.path.join(args['outDir'], "{}.jpg".format(i)), cv2.IMREAD_COLOR)
+        faceFrame = cv2.imread(os.path.join(args['framesDir'], "{}.jpg".format(i)), cv2.IMREAD_COLOR)
         landmarks = predictor(faceFrame, dlib.rectangle(0, 0, faceFrame.shape[1], faceFrame.shape[0]))
 
         ## RETRIEVING VALUES TO BE WRITTEN ON CSV FILE
