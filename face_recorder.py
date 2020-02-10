@@ -123,7 +123,7 @@ while (time.time() - loopStart) <= 60 and success: ## EXECUTE LOOP FOR 60 SECS
 
 ############################ PICKLE/OUTPUT LOGIC #############################
 
-if not success:
+if success:
     pickle_out = open(args['recordsPath'], "wb")
     pickle.dump(records, pickle_out)
     pickle_out.close()
