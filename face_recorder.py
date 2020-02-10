@@ -2,8 +2,37 @@ import time
 import argparse
 import pickle
 import os
-
+from pynput import keyboard
 import cv2
+
+eyesClosed = False
+success = True
+
+def onPress(key):
+    global eyesClosed
+    try:
+        if key.char == "n":
+            eyesClosed = True
+    except:
+        pass
+
+def onRelease(key):
+    global eyesClosed, success
+    try:
+        if key.char == "q":
+            success = False
+            return False
+        if key.char == "n":
+            eyesClosed = False
+    except:
+        pass
+
+
+listener = keyboard.Listener(
+    on_press=onPress,
+    on_release=onRelease)
+
+listener.start()
 
 
 ######################################## ARGS ##########################################
@@ -39,14 +68,12 @@ if not os.path.exists(args['framesDir']):
 ##################################### AUX VARS INIT ##################################
 
 loopStart = time.time()
-eyesClosed = False
 records = []
 frameRate = -1
 
 ##################################### MAIN LOOP ######################################
 
-success = True
-while (time.time() - loopStart) <= 60: ## EXECUTE LOOP FOR 60 SECS
+while (time.time() - loopStart) <= 60 and success: ## EXECUTE LOOP FOR 60 SECS
     frameStart = time.time()
 
     ## FRAME CAPTURE AND FACE FRAME EXTRACTION
@@ -73,13 +100,7 @@ while (time.time() - loopStart) <= 60: ## EXECUTE LOOP FOR 60 SECS
 
     ## READING IF KEY WAS PRESSED
 
-    c = cv2.waitKey(1)
-    if c == ord('n'):
-        eyesClosed = not eyesClosed
-    elif c == ord('q'):
-        success = False
-        break
-
+    cv2.waitKey(1)
     ## SAVING OUTPUT
 
     cv2.imwrite(os.path.join(args['framesDir'], "{}.jpg".format(len(records))), frame)
@@ -102,7 +123,7 @@ while (time.time() - loopStart) <= 60: ## EXECUTE LOOP FOR 60 SECS
 
 ############################ PICKLE/OUTPUT LOGIC #############################
 
-if success:
+if not success:
     pickle_out = open(args['recordsPath'], "wb")
     pickle.dump(records, pickle_out)
     pickle_out.close()
