@@ -4,22 +4,13 @@ import pickle
 import os
 
 import cv2
-from OpenCVFaceDetector import OpenCVFaceDetector
 
-##################################### AUX FUNCS ########################################
-
-def getFaceFrame(frame, facePoints):
-    faceFrame = frame[facePoints['y1']:facePoints['y2'],
-        facePoints['x1']:facePoints['x2']]
-
-    return faceFrame
 
 ######################################## ARGS ##########################################
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-dp", "--dataPath", required=True, help="Caminho para arquivos do detector de face")
 ap.add_argument("-rp", "--recordsPath", required=True, help="Caminho para arquivo onde ficarão salvas as informacoes para cada frame")
-ap.add_argument("-od", "--outDir", required=True, help="Caminho para pasta onde ficarão salvas as imagens")
+ap.add_argument("-fd", "--framesDir", required=True, help="Caminho para pasta onde ficarão salvas as imagens")
 args = vars(ap.parse_args())
 
 ######################### VIDEO CAPTURE + FACE DETECT PREP #############################
@@ -31,52 +22,74 @@ except:
     print('Não foi possível carregar o dispositivo de captura de vídeo')
     exit()
 
-faceDetector = OpenCVFaceDetector(args["dataPath"])
+cnnThreshold = 0.9
+dataPath = "modelFiles/"
+modelFile = "opencv_face_detector_uint8.pb"
+configFile = "opencv_face_detector.pbtxt"
+cnnNet = cv2.dnn.readNetFromTensorflow(os.path.join(dataPath, modelFile), os.path.join(dataPath, configFile))
 
 _, frame = videoCapture.read()
-facePoints = faceDetector.detect(frame)
+facePoints = (0, frame.shape[0], 0, frame.shape[1])
 
 ####################################### OUTPUT PREP ###################################
 
-if not os.path.exists(args['outDir']):
-    os.mkdir(args['outDir'])
+if not os.path.exists(args['framesDir']):
+    os.mkdir(args['framesDir'])
 
 ##################################### AUX VARS INIT ##################################
 
 loopStart = time.time()
-isBlinking = False
+eyesClosed = False
 records = []
-
+frameRate = -1
 
 ##################################### MAIN LOOP ######################################
 
+success = True
 while (time.time() - loopStart) <= 60: ## EXECUTE LOOP FOR 60 SECS
-
     frameStart = time.time()
-    frameRate = -1
 
     ## FRAME CAPTURE AND FACE FRAME EXTRACTION
 
+
+    newFacePoints = None
     _, frame = videoCapture.read()
-    newFacePoints = faceDetector.detect(frame)
+    blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), [104, 117, 123], False, False)
+    cnnNet.setInput(blob) # blob sera a entrada da rede
+    detections = cnnNet.forward() # deteccoes feitas na rede
+    for i in range(detections.shape[2]):
+        confidence = detections[0, 0, i, 2]
+        if confidence > cnnThreshold:
+            x1 = max(int(detections[0, 0, i, 3] * frame.shape[1]), 0)
+            y1 = max(int(detections[0, 0, i, 4] * frame.shape[0]), 0)
+            x2 = int(detections[0, 0, i, 5] * frame.shape[1])
+            y2 = int(detections[0, 0, i, 6] * frame.shape[0])
+            newFacePoints = (y1, y2, x1, x2)
+            break
+
     if newFacePoints:
         facePoints = newFacePoints
-    frame = getFaceFrame(frame, facePoints)
+    frame = frame[facePoints[0]:facePoints[1],facePoints[2]:facePoints[3]]
 
     ## READING IF KEY WAS PRESSED
 
-    if cv2.waitKey(1) == ord('n'):
-        isBlinking = not isBlinking
+    c = cv2.waitKey(1)
+    if c == ord('n'):
+        eyesClosed = not eyesClosed
+    elif c == ord('q'):
+        success = False
+        break
 
     ## SAVING OUTPUT
 
-    cv2.imwrite(args['outDir'] + "/{}.jpg".format(len(records)), frame)
-    records.append((isBlinking, frameStart - loopStart))
+    cv2.imwrite(os.path.join(args['framesDir'], "{}.jpg".format(len(records))), frame)
+    records.append((eyesClosed, frameStart - loopStart))
 
     ## FEEDBACK LOGIC
 
-    cv2.putText(frame, "FPS: {}".format(frameRate), (15, int(frame.shape[0] * 0.9)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-    cv2.putText(frame, "open" if isBlinking else "closed", (15, int(frame.shape[0] * 0.6)), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
+    frame = cv2.resize(frame, (100, 150))
+    cv2.putText(frame, "FPS: {}".format(frameRate), (15, int(frame.shape[0] * 0.9)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)
+    cv2.putText(frame, "closed" if eyesClosed else "open", (15, int(frame.shape[0] * 0.6)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
     cv2.putText(frame, "%.2f" % (time.time() - loopStart), (15, int(frame.shape[0] * 0.1)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
     cv2.imshow('Cam', frame)
 
@@ -89,6 +102,10 @@ while (time.time() - loopStart) <= 60: ## EXECUTE LOOP FOR 60 SECS
 
 ############################ PICKLE/OUTPUT LOGIC #############################
 
-pickle_out = open(args['recordsPath'], "wb")
-pickle.dump(records, pickle_out)
-pickle_out.close()
+if success:
+    pickle_out = open(args['recordsPath'], "wb")
+    pickle.dump(records, pickle_out)
+    pickle_out.close()
+else:
+    import shutil
+    shutil.rmtree(args['framesDir'], ignore_errors=True)
