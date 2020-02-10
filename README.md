@@ -36,11 +36,11 @@ Durante a execução, aparecerá a seguinte janela como *feedback*.
 <img src="./assets/open.png" width="250" height="250">
 <img src="./assets/closed.png" width="250" height="250">
 
-O texto em verde indica por quanto tempo o programa está rodando. Ao atingir 60 segundos, o programa irá automaticamente ser terminado.
+O texto em verde indica por quanto tempo o programa está rodando. Ao atingir 60 segundos, o programa irá automaticamente terminar.
 
 O texto em azul indica a situação dos olhos de acordo com o usuário. Para mudá-la, aperte a tecla `n`. `open` indica que os olhos estão abertos e `closed` que os olhos estão fechados. (se você conseguir ler `closed` algo está errado :P)
 
-O texto em vermelho indica a quantas frames por segundo (FPS) o programa está operando. 
+O texto em vermelho indica a quantas frames por segundo (`FPS`) o programa está operando. 
 
 O programa pode ser abortado teclando `q`. Isso fará com que o diretório criado com as frames já gravadas seja excluído.
 
