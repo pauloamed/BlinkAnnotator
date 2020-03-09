@@ -79,8 +79,10 @@ while (time.time() - loopStart) <= 60 and success: ## EXECUTE LOOP FOR 60 SECS
     ## FRAME CAPTURE AND FACE FRAME EXTRACTION
 
 
-    newFacePoints = None
     _, frame = videoCapture.read()
+    frame = cv2.resize(frame, (320, 240))
+
+    newFacePoints = None
     blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), [104, 117, 123], False, False)
     cnnNet.setInput(blob) # blob sera a entrada da rede
     detections = cnnNet.forward() # deteccoes feitas na rede
@@ -108,7 +110,7 @@ while (time.time() - loopStart) <= 60 and success: ## EXECUTE LOOP FOR 60 SECS
 
     ## FEEDBACK LOGIC
 
-    frame = cv2.resize(frame, (100, 150))
+
     cv2.putText(frame, "FPS: {}".format(frameRate), (15, int(frame.shape[0] * 0.9)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)
     cv2.putText(frame, "closed" if eyesClosed else "open", (15, int(frame.shape[0] * 0.6)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
     cv2.putText(frame, "%.2f" % (time.time() - loopStart), (15, int(frame.shape[0] * 0.1)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
