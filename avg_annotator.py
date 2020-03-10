@@ -25,6 +25,7 @@ pickle_in.close()
 
 ##################################### MAIN LOOP #############################################
 
+
 with open(args['outputPath'], "w") as f:
 
     ## HEADER

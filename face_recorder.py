@@ -58,6 +58,7 @@ configFile = "opencv_face_detector.pbtxt"
 cnnNet = cv2.dnn.readNetFromTensorflow(os.path.join(dataPath, modelFile), os.path.join(dataPath, configFile))
 
 _, frame = videoCapture.read()
+frame = cv2.resize(frame, (frame.shape[0] * 4, frame.shape[1] * 4))
 facePoints = (0, frame.shape[0], 0, frame.shape[1])
 
 ####################################### OUTPUT PREP ###################################
@@ -72,15 +73,21 @@ records = []
 frameRate = -1
 
 ##################################### MAIN LOOP ######################################
+contOpen = contClose = 0
 
-while (time.time() - loopStart) <= 60 and success: ## EXECUTE LOOP FOR 60 SECS
+while (time.time() - loopStart) <= 40 and success: ## EXECUTE LOOP FOR 60 SECS
     frameStart = time.time()
+
+    if eyesClosed:
+        contClose += 1
+    else:
+        contOpen += 1
 
     ## FRAME CAPTURE AND FACE FRAME EXTRACTION
 
 
     _, frame = videoCapture.read()
-    frame = cv2.resize(frame, (320, 240))
+    # frame = cv2.resize(frame, (320, 240))
 
     newFacePoints = None
     blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), [104, 117, 123], False, False)
@@ -124,6 +131,8 @@ while (time.time() - loopStart) <= 60 and success: ## EXECUTE LOOP FOR 60 SECS
 
 
 ############################ PICKLE/OUTPUT LOGIC #############################
+
+print(contClose, contOpen)
 
 if success:
     pickle_out = open(args['recordsPath'], "wb")
