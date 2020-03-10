@@ -4,7 +4,6 @@ import pickle
 import os
 import cv2
 from math import floor
-from randomBlinkGen import *
 import threading
 
 from pydub import AudioSegment
