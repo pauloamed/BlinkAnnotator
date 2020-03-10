@@ -11,6 +11,7 @@ from pydub.playback import play
 
 import random
 
+
 def getNumbers():
     a = random.randint(10, 35)
     aLimit = a + 4
@@ -24,7 +25,7 @@ def getNumbers():
             else: return (a, b)
 
 
-audioFile = AudioSegment.from_mp3('beep.mp3')
+audioFile = AudioSegment.from_mp3(os.path.abspath('beep.mp3'))
 
 locks = [threading.Lock() for _ in (range(2))]
 
