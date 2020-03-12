@@ -6,8 +6,7 @@ import cv2
 from math import floor
 import threading
 
-from pydub import AudioSegment
-from pydub.playback import play
+from playsound import playsound
 
 import random
 
@@ -25,7 +24,7 @@ def getNumbers():
             else: return (a, b)
 
 
-audioFile = AudioSegment.from_mp3(os.path.abspath('beep.mp3'))
+audioPath = os.path.abspath('beep.mp3')
 
 locks = [threading.Lock() for _ in (range(2))]
 
@@ -39,9 +38,9 @@ def playAudio():
     global locks
     ready.set()
     locks[0].acquire()
-    play(audioFile)
+    playsound(audioPath)
     locks[1].acquire()
-    play(audioFile)
+    playsound(audioPath)
 
 
 ######################################## ARGS ##########################################
