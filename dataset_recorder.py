@@ -6,50 +6,47 @@ import cv2
 from math import floor
 import threading
 
-from pydub import AudioSegment
-from pydub.playback import play
-
 import random
 
 
-def getNumbers():
-    a = random.randint(10, 35)
-    aLimit = a + 4
-
-    while True:
-        b = random.randint(10, 35)
-        if b >= a and b <= aLimit:
-            continue
-        else:
-            if a > b: return (b, a)
-            else: return (a, b)
-
-
-audioFile = AudioSegment.from_mp3(os.path.abspath('beep.mp3'))
-
-locks = [threading.Lock() for _ in (range(2))]
-
-firstBlinkPlayed = False
-secondBlinkPlayed = False
-
-ready = threading.Event()
-
-
-def playAudio():
-    global locks
-    ready.set()
-    locks[0].acquire()
-    play(audioFile)
-    locks[1].acquire()
-    play(audioFile)
-
+AUDIO_PATH = os.path.abspath('beep.mp3')
 
 ######################################## ARGS ##########################################
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-rp", "--recordsPath", required=True, help="Caminho para arquivo onde ficarão salvas as informacoes para cada frame")
 ap.add_argument("-fd", "--framesDir", required=True, help="Caminho para pasta onde ficarão salvas as imagens")
-args = vars(ap.parse_args())
+ap.add_argument("-lib", "--audioLibrary", required=False)
+args = ap.parse_args()
+
+################################# AUDIO LIB SETTINGS ###################################
+
+def pydubAudioPlayer(audioPath):
+    from pydub import AudioSegment
+    from pydub.playback import play
+
+    audioFile = AudioSegment.from_mp3(audioPath)
+
+    def playBeep():
+        play(audioFile)
+
+    return playBeep
+
+def playsoundAudioPlayer(audioPath):
+    from playsound import playsound
+
+    def playBeep():
+        playsound(audioPath)
+
+    return playBeep
+
+playBeep = None
+if args.audioLibrary and args.audioLibrary == 'pydub':
+    playBeep = pydubAudioPlayer(AUDIO_PATH)
+else:
+    playBeep = playsoundAudioPlayer(AUDIO_PATH)
+
+
 
 ######################### VIDEO CAPTURE + FACE DETECT PREP #############################
 
@@ -64,18 +61,44 @@ _, frame = videoCapture.read()
 
 ####################################### OUTPUT PREP ###################################
 
-if not os.path.exists(args['framesDir']):
-    os.mkdir(args['framesDir'])
+if not os.path.exists(args.framesDir):
+    os.mkdir(args.framesDir)
 
 ##################################### AUX VARS INIT ##################################
+
+def getNumbers():
+    a = random.randint(10, 35)
+
+    while True:
+        b = random.randint(10, 35)
+        if abs(b - a) <= 4:
+            continue
+        else:
+            if a > b: return (b, a)
+            else: return (a, b)
 
 records = []
 frameRate = -1
 blinks = getNumbers()
+
 print("Piscadas aos {} e {} segundos".format(*blinks))
 
+firstBlinkPlayed = False
+secondBlinkPlayed = False
 
-##################################### MAIN LOOP ######################################
+
+##################################### THREADING ######################################
+
+locks = [threading.Lock() for _ in (range(2))]
+ready = threading.Event()
+
+def playAudio():
+    global locks
+    ready.set()
+    locks[0].acquire()
+    playBeep()
+    locks[1].acquire()
+    playBeep()
 
 blinkThread = threading.Thread(target=playAudio, args=())
 locks[0].acquire()
@@ -83,6 +106,8 @@ locks[1].acquire()
 blinkThread.start()
 
 ready.wait()
+
+##################################### MAIN LOOP ######################################
 
 loopStart = time.time()
 while (time.time() - loopStart) <= 40: ## EXECUTE LOOP FOR 60 SECS
@@ -108,7 +133,7 @@ while (time.time() - loopStart) <= 40: ## EXECUTE LOOP FOR 60 SECS
     cv2.waitKey(1)
     ## SAVING OUTPUT
 
-    cv2.imwrite(os.path.join(args['framesDir'], "{}.jpg".format(len(records))), frame)
+    cv2.imwrite(os.path.join(args.framesDir, "{}.jpg".format(len(records))), frame)
     records.append((relDuration))
 
     ## FEEDBACK LOGIC
@@ -128,6 +153,6 @@ while (time.time() - loopStart) <= 40: ## EXECUTE LOOP FOR 60 SECS
 ############################ PICKLE/OUTPUT LOGIC #############################
 
 
-pickle_out = open(args['recordsPath'], "wb")
+pickle_out = open(args.recordsPath, "wb")
 pickle.dump(records, pickle_out)
 pickle_out.close()
