@@ -2,7 +2,6 @@ import time
 import argparse
 import pickle
 import os
-from pynput import keyboard
 import cv2
 
 from tqdm import tqdm
@@ -31,14 +30,14 @@ def readCSV(inputPath):
 ######################################## ARGS ##########################################
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-rp", "--recordsPath", required=True, help="Caminho para arquivo onde ficarão salvas as informacoes para cada frame")
+ap.add_argument("-cp", "--csvPath", required=True, help="Caminho para arquivo onde ficarão salvas as informacoes para cada frame")
 ap.add_argument("-fd", "--framesDir", required=True, help="Caminho para pasta onde ficarão salvas as imagens")
 ap.add_argument("-s", "--specificFrames", required=False, help="")
 args = ap.parse_args()
 
 ######################### VIDEO CAPTURE + FACE DETECT PREP #############################
 
-numEntries, originalClasses, frameStarts = readCSV(args.recordsPath)
+numEntries, originalClasses, frameStarts = readCSV(args.csvPath)
 
 specificFrames = None
 if args.specificFrames:
