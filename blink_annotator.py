@@ -11,7 +11,7 @@ from tqdm import tqdm
 ORIG_DUR = 1 / 30
 TIMES_SLOWER = 3
 MOD_CUR = ORIG_DUR * TIMES_SLOWER
-FRAMES_WINDOW_SIZE = max(int(0.5 / MOD_CUR), 3)
+FRAMES_WINDOW_SIZE = max(int(1 / MOD_CUR), 3)
 
 print("Frame duration: " + str(MOD_CUR))
 print("Frames window size: " + str(FRAMES_WINDOW_SIZE))
@@ -20,6 +20,7 @@ print("Frames window size: " + str(FRAMES_WINDOW_SIZE))
 
 
 spacebarPressed = False
+timesPressed = 0
 
 def onPress(key):
     global spacebarPressed
@@ -34,6 +35,7 @@ def onRelease(key):
     try:
         if key == keyboard.Key.space: # space
             spacebarPressed = False
+            timesPressed += 1
     except:
         pass
 
@@ -47,12 +49,22 @@ def getDissonantIndexes(images, normal, framesDir):
     print("Press ENTER to continue")
     input()
     for classIndex, origIndex in tqdm(enumerate(images), total=len(images)):
+        addFrame = False
+
         frame = cv2.imread(os.path.join(framesDir, "{}.jpg".format(origIndex)), cv2.IMREAD_COLOR)
         cv2.imshow("Frame", frame)
 
+        timesPressedBefore = timesPressed
         time.sleep(MOD_CUR)
 
         if spacebarPressed:
+            addFrame = True
+
+        timesPressedAfter = timesPressed
+        if timesPressedAfter > timesPressedBefore:
+            addFrame = True
+
+        if addFrame:
             dissonantIndexes.append(classIndex)
 
         cv2.waitKey(1)
@@ -70,10 +82,11 @@ def manualClassify(maybeWrong, framesDir):
     certainBlink, certainNotBlink = [], []
     for cont, i in enumerate(maybeWrong):
         frame = cv2.imread(os.path.join(framesDir, "{}.jpg".format(i)), cv2.IMREAD_COLOR)
-        cv2.imshow("Frame", frame)
-
+        cv2.putText(frame, str(i), (int(frame.shape[1] * 0.5), int(frame.shape[0] * 0.7)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
         while True:
-            print("({}/{}) Are the eyes open or closed? Type O for open and C for closed".format(cont + 1, len(maybeWrong)))
+            print("({}/{}) Frame {}: Are the eyes open or closed? Type O for open and C for closed".format(cont + 1, len(maybeWrong), i))
+            cv2.imshow("Frame", frame)
+            cv2.waitKey(33)
             annotation = input()
             if annotation == 'O':
                 certainNotBlink.append(i)
@@ -84,7 +97,6 @@ def manualClassify(maybeWrong, framesDir):
             else:
                 print("Wrong input!")
 
-        cv2.waitKey(1)
 
     return certainBlink, certainNotBlink
 
@@ -107,6 +119,8 @@ def main(classes, framesDir):
 
     maybeWrongNotBlinkImages = getDissonantIndexes(notBlinkImages, "closed", framesDir)
     print("{} images selected".format(len(maybeWrongNotBlinkImages)))
+
+    cv2.destroyAllWindows()
 
     print("Press ENTER to continue")
     input()
@@ -131,7 +145,7 @@ def readCSV(inputPath):
         header = lines[0].split(';')
 
         frameStartIndex = header.index('frame_start')
-        isBlinkingIndex = header.index('is_blinking')
+        isBlinkingIndex = header.index('eyes_status')
 
         lines = lines[1:]
         numEntries = len(lines)
