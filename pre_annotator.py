@@ -126,7 +126,7 @@ pickle_in.close()
 with open(args['outputPath'], "w") as f:
 
     ## HEADER
-    f.write("index;frame_start;is_blinking;")
+    f.write("index;frame_start;eyes_status;")
     f.write('\n')
 
     ## FOR EACH SAVED RECORD/FRAME
@@ -150,7 +150,7 @@ with open(args['outputPath'], "w") as f:
 
         ## RETRIEVING VALUES TO BE WRITTEN ON CSV FILE
         frameStart = record
-        values = [str(i), "%.3f" % frameStart, "blink" if isBlinking else "not blink"]
+        values = [str(i), "%.3f" % frameStart, "closed" if isBlinking else "open"]
 
         cv2.imshow("Face", gray)
         cv2.waitKey(1)
