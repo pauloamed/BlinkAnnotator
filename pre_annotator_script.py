@@ -40,6 +40,14 @@ while i < len(counterItems):
                 print("Process {} finished".format(x))
                 activeProcesses.remove((x, process))
 
+while len(activeProcesses) != 0:
+    for x, process in activeProcesses:
+        if process.poll() is None:
+            print("Process {} not finished".format(x))
+        else:
+            print("Process {} finished".format(x))
+            activeProcesses.remove((x, process))
+
 
 
 pritn("Exiting...")
