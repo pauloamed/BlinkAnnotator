@@ -42,17 +42,23 @@ Assim que o usuário executar o programa, a primeira fase começa e o seguinte t
 
 Nele, é indicado que a primeira fase está começando, e também são indicados o tempo que cada frame aparecerá (em segundos) e o tamanho da janela de frames passadas que será considerada a fim de tratar o atraso. Ambos valores, como já dito, estão em função do parâmetro de entrada `timesSlower`.
 
-O primeiro grupo que será mostrado será o de OLHOS_FECHADOS. Logo, o usuário deve marcar com barra de espaço todas as frames que encontrar algum olho aberto.
+O primeiro grupo que será mostrado será o de **OLHOS_FECHADOS**. Logo, o usuário deve **marcar com barra de espaço todas as frames que encontrar algum olho aberto**.
 
 <br><img src="./assets/first_phase_a.png" width="500" height="250">
 
 Nessa fase, o usuário deve apertar espaço em casos como o seguinte (já que esses casos **não** estão em sua classe correta)
-<br>
-<img src="./assets/first_phase_a_open.png" width="500" height="250">
+<br>s<img src="./assets/first_phase_a_open.png" width="500" height="250">
 
 E não apertar em casos como o seguinte (já que esses casos estão em sua classe correta)
-<br>
-<img src="./assets/first_phase_a_closed.png" width="500" height="250">
+<br><img src="./assets/first_phase_a_closed.png" width="500" height="250">
+
+O segundo grupo que será mostrado será o de **OLHOS_ABERTOS**. Logo, o usuário deve **marcar com barra de espaço todas as frames que encontrar algum olho fechado**.
+
+<br><img src="./assets/first_phase_b.png" width="500" height="250">
+
+E não apertar em casos como o seguinte (já que esses casos estão em sua classe correta)
+<br><img src="./assets/first_phase_b_open.png" width="500" height="250">
+
 
 O fim dessa fase é indicado com a quantidade de frames cujas classes o usuário indicou como erradas.
 
