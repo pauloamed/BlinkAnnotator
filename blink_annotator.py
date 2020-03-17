@@ -15,7 +15,7 @@ ap.add_argument("-ip", "--inputPath", required=True, help="Caminho para arquivo 
 ap.add_argument("-fd", "--framesDir", required=True, help="Caminho para pasta onde ficarão salvas as imagens")
 ap.add_argument("-op", "--outputPath", required=True, help="Caminho para arquivo CSV de saída")
 ap.add_argument("-ts", "--timesSlower", required=False, help="Quantas vezes mais lento que a execução normal", default=3)
-ap.add_argument("-t", "--threshold", required=False, help="Threshold de sequencias", default=3)
+ap.add_argument("-st", "--seqThreshold", required=False, help="Threshold de sequencias", default=3)
 args = vars(ap.parse_args())
 
 ####################################################################################################
@@ -25,7 +25,7 @@ TIMES_SLOWER = int(args['timesSlower'])
 MOD_DUR = ORIG_DUR * TIMES_SLOWER
 FRAMES_WINDOW_SIZE = max(int(1 / MOD_DUR), 3)
 
-SEQ_THRESHOLD = int(args['threshold'])
+SEQ_THRESHOLD = int(args['seqThreshold'])
 
 ####################################################################################################
 
@@ -159,7 +159,7 @@ def manualClassifyShortSeqs(shortSequences, framesDir):
                 frame = cv2.imread(os.path.join(framesDir, "{}.jpg".format(j)), cv2.IMREAD_COLOR)
                 cv2.putText(frame, str(j), (int(frame.shape[1] * 0.5), int(frame.shape[0] * 0.7)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
                 cv2.imshow("Frame", frame)
-                cv2.waitKey(50)
+                cv2.waitKey(100)
 
             while True:
                 print("Play sequence again? Type Y for yes and N for no")
