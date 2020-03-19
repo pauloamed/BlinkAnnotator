@@ -207,6 +207,7 @@ def main(classes, framesDir):
     maybeWrongBlinkImages = getDissonantIndexes(blinkImages, "open", framesDir)
     print("{} images selected".format(len(maybeWrongBlinkImages)))
 
+    cv2.destroyAllWindows()
 
     maybeWrongNotBlinkImages = getDissonantIndexes(notBlinkImages, "closed", framesDir)
     print("{} images selected".format(len(maybeWrongNotBlinkImages)))
@@ -287,6 +288,6 @@ with open(args['outputPath'], "w") as f:
     f.write('\n')
 
     for i in range(numEntries):
-        values = [str(i), frameStarts[i], "blink" if correctedClasses[i] else "not blink"]
+        values = [str(i), frameStarts[i], "closed" if correctedClasses[i] else "open"]
         f.write(";".join([x for x in values]))
         f.write('\n')
