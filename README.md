@@ -91,8 +91,8 @@ Então, a sequência será posta para anotação
 
 <br><img src="./assets/third_phase_ann.png" width="500" height="250">
 
-### Como instalar
-Basta instalar a biblioteca as seguintes bibliotecas:
+### Como instalar prerequisitos
+Basta instalar as seguintes bibliotecas:
 ```
 pip install opencv-python
 pip install pynput
