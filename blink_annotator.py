@@ -149,7 +149,7 @@ def checkForShortSequences(output):
 def manualClassifyShortSeqs(shortSequences, framesDir):
     certainBlink, certainNotBlink = [], []
     for i, seq in enumerate(shortSequences):
-        print("Correcting sequence {}".format(i))
+        print("({}/{}) Correcting the sequence {}:".format(i+1, len(shortSequences), i+1))
 
         print("Reproducing sequence...")
 
