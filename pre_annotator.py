@@ -94,7 +94,9 @@ def predict_eye_state(model, image):
     image_batch = np.reshape(image, (1, 10, 20, 1))
     image_batch = keras.applications.mobilenet.preprocess_input(image_batch)
 
-    return np.argmax( model.predict(image_batch)[0] )
+    output = model.predict(image_batch)[0]
+    print(output)
+    return np.argmax(output)
 
 
 def checkIfBlinking(model, leftEye, rightEye):
@@ -145,6 +147,8 @@ with open(args['outputPath'], "w") as f:
 
         leftEye = getEyeImage(gray, LEFT_EYE_INDEXES, landmarks)
         rightEye = getEyeImage(gray, RIGHT_EYE_INDEXES, landmarks)
+
+        cv2.imshow("le", leftEye)
 
         isBlinking = checkIfBlinking(model, leftEye, rightEye)
 
