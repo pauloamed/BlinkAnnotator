@@ -27,7 +27,7 @@ except:
     exit()
 
 
-showTime = False
+showTime = True
 
 while True:
     loopStart = time.time()
@@ -52,9 +52,11 @@ while True:
     output = classifier(frame)
     if showTime: print("Classifer: {:.4f}".format(time.time() - startClassifier))
 
-    # fps = 1 / (time.time() - loopStart)
-    # print("FPS: {}".format(fps))
-    # print(time.time() - loopStart)
+
+    print(output)
+    if showTime:
+        fps = 1 / (time.time() - loopStart)
+        print("FPS: {}".format(fps), time.time() - loopStart)
 
     # logica do opencv, aperta q pra fechar
     if cv2.waitKey(1) & 0xFF == ord('q'):

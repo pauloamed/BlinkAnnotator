@@ -33,10 +33,8 @@ def readCSV(inputPath):
 ap = argparse.ArgumentParser()
 ap.add_argument("-cp", "--csvPath", required=True, help="Caminho para arquivo onde ficarão salvas as informacoes para cada frame")
 ap.add_argument("-fd", "--framesDir", required=True, help="Caminho para pasta onde ficarão salvas as imagens")
-args = ap.parse_args()
 
-if not os.path.exists(args.outputPath):
-    os.mkdir(args.outputPath)
+args = ap.parse_args()
 
 ######################### VIDEO CAPTURE + FACE DETECT PREP #############################
 
@@ -48,12 +46,16 @@ fileSpecific = args.framesDir.split('/')[-1]
 
 closedCount = openCount = 0
 for i in tqdm(range(numEntries)):
+    fileName = os.path.join(args.framesDir, "{}.jpg".format(i))
 
+    newFileName = None
     if originalClasses[i] == 'closed':
-        fileName = "closed_{}.jpg".format(closedCount)
+        newFileName = "{}_closed_{}.jpg".format(i, closedCount)
         closedCount += 1
     else:
-        fileName = "open_{}.jpg".format(openCount)
+        newFileName = "{}_open_{}.jpg".format(i, openCount)
         openCount += 1
 
-    
+    newFileName = os.path.join(args.framesDir, newFileName)
+
+    os.rename(fileName, newFileName)

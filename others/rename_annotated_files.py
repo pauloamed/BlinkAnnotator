@@ -1,4 +1,5 @@
 import os
+import argparse
 
 def renameFiles(pathsList, name):
     for i, x in enumerate(pathsList):
