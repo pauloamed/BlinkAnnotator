@@ -5,7 +5,6 @@ import os
 import cv2
 from math import floor
 import threading
-
 import random
 
 
@@ -110,6 +109,13 @@ ready.wait()
 ##################################### MAIN LOOP ######################################
 
 loopStart = time.time()
+
+print("Press ENTER to continue")
+input()
+for i in range(3, 0, -1):
+    print("Starting in {}...".format(i))
+    time.sleep(1)
+
 while (time.time() - loopStart) <= 40: ## EXECUTE LOOP FOR 60 SECS
     frameStart = time.time()
     relDuration = frameStart - loopStart

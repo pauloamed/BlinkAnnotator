@@ -7,6 +7,7 @@ import random
 
 from tqdm import tqdm
 
+from utils import countdown
 
 ####################################################################################################
 
@@ -59,6 +60,7 @@ def getDissonantIndexes(images, normal, framesDir):
     print("Hit SPACE for \'{}\'".format(normal.upper()))
     print("Press ENTER to continue")
     input()
+    countdown(5)
 
     for classIndex, origIndex in tqdm(enumerate(images), total=len(images)):
         addFrame = False
