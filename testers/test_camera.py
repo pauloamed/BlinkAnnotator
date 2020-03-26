@@ -8,16 +8,22 @@ import argparse
 
 from utils import loadModels
 
+from blink_utils.models.face_detectors import *
+from blink_utils.models.classifiers import *
+from blink_utils.models.roi_extractors import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-fp", "--filesPath", required = True)
-parser.add_argument("-fd", "--face_detector", required = True)
-parser.add_argument("-re", "--roi_extractor", required = False)
-parser.add_argument("-c", "--classifier", required = True)
 args = parser.parse_args()
 
 filesPath = args.filesPath
-faceDetector, roiExtractor, classifier = loadModels(args, filesPath)
+
+faceDetector = CNNOpenCV(args.filesPath)
+roiExtractor = ROI68LandmarksDlib(args.filesPath, pointsList = ['sboth'], scales = [[(3, 3)]], updateRound = 1)
+classifier = HaarOpenCV(args.filesPath)
+
+aligner = Aligner5LandmarksDlib(args.filesPath)
+
 
 videoCapture = None
 try:
@@ -27,7 +33,7 @@ except:
     exit()
 
 
-showTime = True
+showTime = False
 
 while True:
     loopStart = time.time()
@@ -36,7 +42,9 @@ while True:
     startFaceDetector = time.time()
     facePoints = faceDetector(frame)
     if showTime: print("Face Detector: {:.4f}".format(time.time() - startFaceDetector))
-    if facePoints == None: continue
+    if facePoints == None:
+        print("Cant find face")
+        continue
     faceFrame = frame[facePoints['y1']:facePoints['y2'], facePoints['x1']:facePoints['x2']]
     frame = faceFrame
 
@@ -48,12 +56,14 @@ while True:
                         for eyesPoints in eyesPointsFromScales]
         frame = eyesFrames[0]
 
+    cv2.imshow("a", frame)
+
     startClassifier = time.time()
     output = classifier(frame)
     if showTime: print("Classifer: {:.4f}".format(time.time() - startClassifier))
 
 
-    print(output)
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" if output else "")
     if showTime:
         fps = 1 / (time.time() - loopStart)
         print("FPS: {}".format(fps), time.time() - loopStart)

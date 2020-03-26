@@ -102,7 +102,7 @@ def testVideo(faceDetector, roiExtractor, classifier, imagesDir, imagesAnnotatio
     TrueNegatives = 0
     FalseNegatives = 0
 
-    for i in tqdm(range(numEntries)):
+    for i in range(numEntries):
         frame = cv2.imread(os.path.join(imagesDir, "{}.jpg".format(i)), cv2.IMREAD_COLOR)
 
         facePoints = faceDetector(frame)
@@ -117,6 +117,7 @@ def testVideo(faceDetector, roiExtractor, classifier, imagesDir, imagesAnnotatio
 
         output = classifier(frame)
         detectorOutput = "closed" if output else "open"
+        print(detectorOutput)
 
         if originalClasses[i] == 'closed':
             if detectorOutput == 'closed':
