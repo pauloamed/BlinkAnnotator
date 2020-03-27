@@ -32,62 +32,90 @@ SEQ_THRESHOLD = int(args['seqThreshold'])
 
 
 spacebarPressed = False
+rPressed = False
 timesPressed = 0
 
 def onPress(key):
-    global spacebarPressed
+    global spacebarPressed, rPressed
     try:
         if key == keyboard.Key.space: # space
             spacebarPressed = True
+        if key.char == "r": # r
+            rPressed = True
     except:
         pass
 
 def onRelease(key):
-    global spacebarPressed
+    global spacebarPressed, rPressed
     try:
         if key == keyboard.Key.space: # space
             spacebarPressed = False
             timesPressed += 1
+        if key.char == "r": # r
+            rPressed = False
     except:
         pass
 
 ####################################################################################################
 
 def getDissonantIndexes(images, normal, framesDir):
-    dissonantIndexes = []
     totalFrames = len(images)
 
-    print("Hit SPACE for \'{}\'".format(normal.upper()))
-    print("Press ENTER to continue")
-    input()
-    countdown(5)
+    resetRequest = True
+    while resetRequest:
+        resetRequest = False
 
-    for classIndex, origIndex in tqdm(enumerate(images), total=len(images)):
-        addFrame = False
+        dissonantIndexes = []
+        print("Hit SPACE for \'{}\'".format(normal.upper()))
+        print("Press ENTER to continue")
+        input()
+        countdown(5)
+        for classIndex, origIndex in tqdm(enumerate(images), total=len(images)):
+            addFrame = False
 
-        frame = cv2.imread(os.path.join(framesDir, "{}.jpg".format(origIndex)), cv2.IMREAD_COLOR)
-        if frame is None:
-            print("Error while openning {}.jpg".format(origIndex))
-            print("Exiting...")
-            exit()
+            frame = cv2.imread(os.path.join(framesDir, "{}.jpg".format(origIndex)), cv2.IMREAD_COLOR)
+            if frame is None:
+                print("Error while openning {}.jpg".format(origIndex))
+                print("Exiting...")
+                exit()
 
-        cv2.imshow("Frame", frame)
+            cv2.imshow("", frame)
 
+            if rPressed:
+                print("Restarting step...")
+                resetRequest = True
+                cv2.destroyAllWindows()
+                break
 
-        timesPressedBefore = timesPressed
-        time.sleep(MOD_DUR)
+            timesPressedBefore = timesPressed
+            time.sleep(MOD_DUR)
 
-        if spacebarPressed:
-            addFrame = True
+            if spacebarPressed:
+                addFrame = True
 
-        timesPressedAfter = timesPressed
-        if timesPressedAfter > timesPressedBefore:
-            addFrame = True
+            timesPressedAfter = timesPressed
+            if timesPressedAfter > timesPressedBefore:
+                addFrame = True
 
-        if addFrame:
-            dissonantIndexes.append(classIndex)
+            if addFrame:
+                dissonantIndexes.append(classIndex)
 
-        cv2.waitKey(1)
+            cv2.waitKey(1)
+
+            if classIndex == len(images) - 1:
+                while True:
+                    print("Would you like to reset this step? Y for Yes and N for No")
+                    ans = input()
+                    if ans == 'Y':
+                        print("Restarting step...")
+                        resetRequest = True
+                        cv2.destroyAllWindows()
+                        break
+                    elif ans == 'N':
+                        print("Confirmed!")
+                        break
+                    else:
+                        print("Wrong input!")
 
     finalDissonantIndexes = set()
     for classIndex in dissonantIndexes:
@@ -98,24 +126,68 @@ def getDissonantIndexes(images, normal, framesDir):
     return list(finalDissonantIndexes)
 
 
+def resetListSteps(l, i):
+    while len(l) > 0 and l[-1] >= i:
+        l.pop(-1)
+
+
 def manualClassify(maybeWrong, framesDir):
     certainBlink, certainNotBlink = [], []
-    for cont, i in enumerate(maybeWrong):
+
+
+    cont = 0
+    while cont < len(maybeWrong):
+        resetRequest = False
+        i = maybeWrong[cont]
+
         frame = cv2.imread(os.path.join(framesDir, "{}.jpg".format(i)), cv2.IMREAD_COLOR)
         cv2.putText(frame, str(i), (int(frame.shape[1] * 0.5), int(frame.shape[0] * 0.7)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+
+
         while True:
-            print("({}/{}) Frame {}: Are the eyes open or closed? Type O for open and C for closed".format(cont + 1, len(maybeWrong), i))
-            cv2.imshow("Frame", frame)
-            cv2.waitKey(33)
+            print("({}/{}) Frame {}: Are the eyes open or closed? Type O for open, C for closed and r for reseting steps".format(cont + 1, len(maybeWrong), i))
+            cv2.imshow("", frame)
+            cv2.waitKey(150)
+
             annotation = input()
             if annotation == 'O':
-                certainNotBlink.append(i)
+                certainNotBlink.append(cont)
                 break
             elif annotation == 'C':
-                certainBlink.append(i)
+                certainBlink.append(cont)
+                break
+            elif annotation == 'r':
+                cv2.destroyAllWindows()
+                print("To which step would you like to go back?")
+
+                try:
+                    newStep = int(input()) - 1
+                except:
+                    newStep = cont - 1
+
+                newStep = max(newStep, 0)
+                newStep = min(newStep, cont)
+
+                resetListSteps(certainBlink, newStep)
+                resetListSteps(certainNotBlink, newStep)
+
+                cont = newStep
+                resetRequest = True
+
                 break
             else:
                 print("Wrong input!")
+
+        if resetRequest:
+            continue
+
+        cont += 1
+
+    for i in range(len(certainBlink)):
+        certainBlink[i] = maybeWrong[certainBlink[i]]
+
+    for i in range(len(certainNotBlink)):
+        certainNotBlink[i] = maybeWrong[certainNotBlink[i]]
 
 
     return certainBlink, certainNotBlink
@@ -160,7 +232,7 @@ def manualClassifyShortSeqs(shortSequences, framesDir):
             for j in seq:
                 frame = cv2.imread(os.path.join(framesDir, "{}.jpg".format(j)), cv2.IMREAD_COLOR)
                 cv2.putText(frame, str(j), (int(frame.shape[1] * 0.5), int(frame.shape[0] * 0.7)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
-                cv2.imshow("Frame", frame)
+                cv2.imshow("", frame)
                 cv2.waitKey(100)
 
             while True:
@@ -180,8 +252,6 @@ def manualClassifyShortSeqs(shortSequences, framesDir):
         certainNotBlink += certainNotBlinkSeq
 
     return certainBlink, certainNotBlink
-
-
 
 
 def main(classes, framesDir):
