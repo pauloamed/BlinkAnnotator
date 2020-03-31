@@ -9,3 +9,5 @@ pynput==1.6.6
 python-xlib==0.26
 six==1.14.0
 tqdm==4.43.0
+git+git://github.com/pauloamed/blink_utils.git
+
