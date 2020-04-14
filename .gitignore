@@ -3,3 +3,5 @@ venv/
 *.csv
 *.jpg
 *.pickle
+.vscode/
+FRAMES_DIR/
