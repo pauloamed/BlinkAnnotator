@@ -8,15 +8,18 @@ import threading
 import random
 
 
-AUDIO_PATH = os.path.abspath('beep.mp3')
 
 ######################################## ARGS ##########################################
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-rp", "--recordsPath", required=True, help="Caminho para arquivo onde ficarão salvas as informacoes para cada frame")
 ap.add_argument("-fd", "--framesDir", required=True, help="Caminho para pasta onde ficarão salvas as imagens")
-ap.add_argument("-lib", "--audioLibrary", required=False)
+ap.add_argument("-af", "--audioFile", required=True)
+ap.add_argument("-lib", "--audioLibrary", help="pydub or playsound", required=False)
 args = ap.parse_args()
+
+################################# AUDIO SETTINGS #######################################
+AUDIO_PATH = os.path.abspath(args.audioFile)
 
 ################################# AUDIO LIB SETTINGS ###################################
 
@@ -108,7 +111,6 @@ ready.wait()
 
 ##################################### MAIN LOOP ######################################
 
-loopStart = time.time()
 
 print("Press ENTER to continue")
 input()
@@ -116,6 +118,7 @@ for i in range(3, 0, -1):
     print("Starting in {}...".format(i))
     time.sleep(1)
 
+loopStart = time.time()
 while (time.time() - loopStart) <= 40: ## EXECUTE LOOP FOR 60 SECS
     frameStart = time.time()
     relDuration = frameStart - loopStart
