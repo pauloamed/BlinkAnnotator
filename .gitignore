@@ -1,7 +1,6 @@
 venv/
 *.pyc
 *.csv
-*.jpg
 *.pickle
 .vscode/
 FRAMES_DIR/
