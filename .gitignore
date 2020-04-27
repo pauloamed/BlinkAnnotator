@@ -4,3 +4,7 @@ venv/
 *.pickle
 .vscode/
 FRAMES_DIR/
+*.jpg
+*.txt
+*.hdf5
+*.db
