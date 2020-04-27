@@ -22,8 +22,8 @@ ap.add_argument("-op", "--outputPath", required=True, help="Caminho para arquivo
 args = vars(ap.parse_args())
 
 faceDetector = CNNOpenCV(args['filesPath'])
-roiExtractor = ROI68LandmarksDlib(args['filesPath'], pointsList = ['left', 'right'], scales = [[(1, 1)], [(1, 1)]], updateRound = 1)
-classifier = KristenCNNTensorFlow(args['filesPath'])
+roiExtractor = ROI5LandmarksDlib(args['filesPath'], pointsList = ['left', 'right'], scales = [[(1.1, 1)], [(1.1, 1)]], updateRound = 1)
+classifier = SigmoidCNNPytorch(args['filesPath'], threshold = 0.1, modelFile = "olho_20x20.pt", fixedSize = (20, 20))
 
 
 ################################# PICKLE/INPUT LOGIC ###################################
@@ -57,7 +57,7 @@ with open(args['outputPath'], "w") as f:
         eyesFrames = [frame[eyesPoints['y1']:eyesPoints['y2'], eyesPoints['x1']:eyesPoints['x2']]
                         for eyesPoints in eyesPointsFromScales]
         frame = eyesFrames[0].copy()
-        output = classifier(eyesFrames[0], eyesFrames[1])
+        output = classifier(eyesFrames[0]) and classifier(eyesFrames[1])
 
         ## RETRIEVING VALUES TO BE WRITTEN ON CSV FILE
         frameStart = record

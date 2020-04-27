@@ -18,8 +18,8 @@ ap.add_argument("-op", "--outputPath", required=True, help="")
 args = ap.parse_args()
 
 
-faceDetector = CNNOpenCV(args.modelsPath, cnnThreshold=0.9)
-extractor = ROI5LandmarksDlib(args.modelsPath, points = 'both', scales = [(1.2, 1)], updateRound = 1)
+faceDetector = UltraLightONNX(args.modelsPath, "version-RFB-320_320_simplified.onnx", threshold = 0.8, inputSize=320)
+extractor = ROI5LandmarksDlib(args.modelsPath, pointsList = ['left', 'right'], scales = [[(1.1, 1)], [(1.1, 1)]], updateRound = 1)
 
 if not os.path.exists(args.outputPath):
     os.mkdir(args.outputPath)
@@ -36,9 +36,19 @@ for filePath in tqdm(os.listdir(args.inputPath)):
 
 
     facePoints = faceDetector(frame)
+    if facePoints is None:
+        continue
+
     frame = frame[facePoints['y1']:facePoints['y2'], facePoints['x1']:facePoints['x2']]
 
-    eyesPoints = extractor(frame)[0]
-    frame = frame[eyesPoints['y1']:eyesPoints['y2'], eyesPoints['x1']:eyesPoints['x2']]
 
-    cv2.imwrite(os.path.join(args.outputPath, filePath), frame)
+    eyesPoints = extractor(frame)
+    if eyesPoints is None:
+        continue
+    for i, eyePoints in enumerate(eyesPoints):
+        eyeFrame = frame[eyePoints['y1']:eyePoints['y2'], eyePoints['x1']:eyePoints['x2']]
+
+        # cv2.imshow("b", eyeFrame)
+        # cv2.waitKey(1000)
+
+        cv2.imwrite(os.path.join(args.outputPath, filePath + "_{}.jpg".format(i)), eyeFrame)
