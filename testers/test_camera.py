@@ -16,8 +16,9 @@ import argparse
 from blink_utils.models.face_detectors import *
 from blink_utils.models.classifiers import *
 from blink_utils.models.roi_extractors import *
-
 from blink_utils.models.face_aligners import *
+
+from blink_utils.models import PreRotator, WindowFilter
 
 from blink_utils import BlinkLengthEstimator
 
@@ -29,23 +30,24 @@ args = parser.parse_args()
 
 filesPath = args.filesPath
 
-faceDetector = UltraLight(args.filesPath, threshold = 0.8)
+faceDetector = UltraLightONNX(args.filesPath, "version-slim-320_320_simplified.onnx", threshold = 0.8, inputSize=320)
 
 aligner = Aligner5LandmarksDlib(args.filesPath)
 
-roiExtractor = ROI5LandmarksDlib(args.filesPath, pointsList = ['left', 'right'], scales = [[(1.1, 1)], [(1.1, 1)]], updateRound = 1)
-classifier = SigmoidCNNPytorch(args.filesPath, threshold = 0.1, modelFile = "olho_20x20.pt", fixedSize = (20, 20))
-# classifier = KristenCNNTensorFlow(args.filesPath)
-# classifier = HaarOpenCV(args.filesPath)
-#
-lengthEstimator = BlinkLengthEstimator(window = 11, threshold = 0.5, log=False)
+roiExtractor = ROI5LandmarksDlib(args.filesPath, pointsList = ['left', 'right'], scales = [[(1.1, 1.1)], [(1.1, 1.1)]], updateRound = 1)
+classifier = SigmoidCNNPytorch(args.filesPath, threshold = 0.8, modelFile = "midelo_30x30.pt", fixedSize = (30, 30), normalize=True, closedId=0)
 
-videoCapture = None
-try:
-    videoCapture = cv2.VideoCapture(0)
-except:
-    print('Não foi possível carregar o dispositivo de captura de vídeo')
-    exit()
+lengthEstimator = BlinkLengthEstimator()
+prerot = PreRotator()
+filt = WindowFilter('hamming', 5, threshold=0.5)
+
+
+# videoCapture = None
+# try:
+#     videoCapture = cv2.VideoCapture(0)
+# except:
+#     print('Não foi possível carregar o dispositivo de captura de vídeo')
+#     exit()
 
 
 showTime = False
@@ -57,26 +59,28 @@ total = 0
 timeFace = 0
 timeRoi = 0
 timeClass = 0
+
 while True:
     total += 1
     _, frame = videoCapture.read()
+    frame = prerot(frame)
     cv2.imshow("a", frame)
 
-    startFaceDetector = time.time()
-    facePoints = faceDetector(frame)
-    timeFace += time.time() - startFaceDetector
-    if showTime: print("Face Detector: {:.4f}".format(time.time() - startFaceDetector))
-    if facePoints == None:
-        print("Cant find face")
-        continue
-    faceFrame = frame[facePoints['y1']:facePoints['y2'], facePoints['x1']:facePoints['x2']]
-    frame = faceFrame
-
-    angle = aligner(frame)
-
-    frame = imutils.rotate_bound(frame, angle * 180 / np.pi)
-
-    cv2.imshow("b", frame)
+    # startFaceDetector = time.time()
+    # facePoints = faceDetector(frame)
+    # timeFace += time.time() - startFaceDetector
+    # if showTime: print("Face Detector: {:.4f}".format(time.time() - startFaceDetector))
+    # if facePoints == None:
+    #     print("Cant find face")
+    #     continue
+    # faceFrame = frame[facePoints['y1']:facePoints['y2'], facePoints['x1']:facePoints['x2']]
+    # frame = faceFrame
+    #
+    # angle = aligner(frame)
+    # frame = aligner.rotateFrame(frame)
+    # prerot.update(angle, facePoints)
+    #
+    # cv2.imshow("b", frame)
 
     eyesFrames = None
     if roiExtractor:
@@ -91,10 +95,10 @@ while True:
     cv2.imshow("c", frame)
 
     startClassifier = time.time()
-    output = classifier(eyesFrames[0])
-    print(output)
+    output = classifier(eyesFrames[0]) * classifier(eyesFrames[1])
+    output = filt(output)
 
-    lengthEstimator.addOutput(output)
+    lengthEstimator.updateStatus(output)
 
     print(lengthEstimator.getLastBlink())
 
